@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVX OFFICIAL COMMUNITY</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+        }
+
+        .bg-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        /* Password Overlay */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+        }
+
+        .auth-card {
+            background: #0f1420;
+            border: 2px solid #00ffcc;
+            border-radius: 16px;
+            padding: 20px;
+            width: 85%;
+            max-width: 290px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+        }
+
+        .auth-card h3 {
+            color: #00ffcc;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .auth-card input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1.5px solid #00ffcc;
+            background: #080a0f;
+            color: #fff;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .auth-card button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, #00ffcc, #00b377);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* উইজেট বক্সের সাইজ ছোট ও স্লিক রাখা হয়েছে */
+        .widget-container {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 10px;
+            width: 210px; 
+            z-index: 9999;
+            touch-action: none;
+        }
+
+        .wings-bg {
+            position: relative;
+            width: 100%;
+            background: rgba(10, 14, 23, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid #00ffcc;
+            border-radius: 8px;
+            padding: 5px 6px;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 170, 0.2);
+            padding-bottom: 2px;
+            margin-bottom: 3px;
+            cursor: move;
+        }
+
+        .title-text {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 8.5px;
+            letter-spacing: 0.5px;
+        }
+
+        .ping-box {
+            background: rgba(0, 255, 170, 0.15);
+            border: 1px solid #00ffcc;
+            border-radius: 4px;
+            padding: 1px 3px;
+            font-size: 7.5px;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        .sync-badge {
+            background: #00c853;
+            color: #fff;
+            font-size: 7.5px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-align: center;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* সিক্রেট অ্যাডমিন কন্ট্রোল প্যানেল */
+        .admin-override-box {
+            display: none;
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid #ff0055;
+            border-radius: 4px;
+            padding: 3px;
+            margin-bottom: 3px;
+            text-align: center;
+        }
+        .admin-override-box span {
+            font-size: 7.5px;
+            color: #ff0055;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .override-btns {
+            display: flex;
+            gap: 2px;
+        }
+        .btn-auto, .btn-forced-big, .btn-forced-small {
+            flex: 1;
+            font-size: 7.5px;
+            font-weight: bold;
+            padding: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .btn-auto { background: #1e293b; color: #cbd5e1; border: 1px solid #475569; }
+        .btn-forced-big { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+        .btn-forced-small { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
+
+        .period-box {
+            background: #080b12;
+            border: 1px solid #1e293b;
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 8px;
+            color: #cbd5e1;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .period-box span {
+            color: #00f0ff;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 9px;
+        }
+
+        .prediction-display {
+            background: #04060a;
+            border: 1.5px solid #00ffcc;
+            border-radius: 4px;
+            padding: 3px;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .prediction-val {
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .status-val {
+            font-size: 7.5px;
+            font-weight: bold;
+            margin-top: 1px;
+            color: #00f0ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            font-size: 7.5px;
+            margin-bottom: 3px;
+        }
+
+        .stat-item {
+            background: #080b12;
+            padding: 2px;
+            border-radius: 2px;
+            border: 1px solid #1e293b;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .stat-item span {
+            display: block;
+            color: #00ffcc;
+            font-weight: bold;
+            font-size: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 2px;
+        }
+
+        .btn-tg {
+            flex: 1;
+            background: linear-gradient(90deg, #0088cc, #00aaff);
+            color: #fff;
+            text-decoration: none;
+            padding: 2.5px;
+            font-size: 7.5px;
+            font-weight: bold;
+            border-radius: 2px;
+            text-align: center;
+        }
+
+        .btn-hide {
+            flex: 1;
+            background: #1e293b;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 2.5px;
+            font-size: 7.5px;
+            font-weight: bold;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .show-mini-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 10px;
+            background: #00ffcc;
+            color: #000;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 8px;
+            box-shadow: 0 0 12px rgba(0, 255, 204, 0.9);
+            cursor: pointer;
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Game Site -->
+    <iframe class="bg-iframe" src="https://240bdwin24.com/register?inviteCode=3DHL3EN&from=web"></iframe>
+
+    <!-- Password Verification Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <h3>AVX OFFICIAL COMMUNITY</h3>
+            <input type="password" id="passInput" placeholder="Enter Password">
+            <button onclick="verifyAccess()">SUBMIT</button>
+        </div>
+    </div>
+
+    <!-- Main Predictor Widget -->
+    <div class="widget-container" id="widgetContainer">
+        <div class="wings-bg">
+            <div class="widget-header" id="widgetHeader">
+                <span class="title-text">AVX OFFICIAL COMMUNITY</span>
+                <span class="ping-box">6ms</span>
+            </div>
+
+            <div class="sync-badge">30S VIP RANDOM SYNC</div>
+
+            <!-- সিক্রেট অ্যাডমিন কন্ট্রোল প্যানেল -->
+            <div class="admin-override-box" id="adminOverrideBox">
+                <span>👑 OWNER CONTROL PANEL</span>
+                <div class="override-btns">
+                    <button class="btn-auto" onclick="setOverride('AUTO')">Auto</button>
+                    <button class="btn-forced-big" onclick="setOverride('BIG')">Force BIG</button>
+                    <button class="btn-forced-small" onclick="setOverride('SMALL')">Force SMALL</button>
+                </div>
+            </div>
+
+            <div class="period-box">
+                PER: <span id="periodTxt">00000000000000</span>
+            </div>
+
+            <div class="prediction-display">
+                <div class="prediction-val" id="predType">BIG</div>
+                <div class="status-val" id="predStatus">WAITING</div>
+            </div>
+
+            <!-- উইন/লস বারটি সফলভাবে সরিয়ে ফেলা হয়েছে -->
+
+            <div class="stats-grid">
+                <div class="stat-item">ACC: <span>95%</span></div>
+                <div class="stat-item">TIME: <span id="timerTxt">30s</span></div>
+            </div>
+
+            <div class="btn-group">
+                <a href="https://t.me/avx_covvvxssw" target="_blank" class="btn-tg">TELEGRAM</a>
+                <button class="btn-hide" onclick="toggleWidget(false)">HIDE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Show Button -->
+    <div class="show-mini-btn" id="miniBtn" onclick="toggleWidget(true)">
+        SHOW
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById("passInput").focus();
+        };
+
+        function getDailyPassword() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            return day + month;
+        }
+
+        let isAdminLoggedIn = false;
+
+        function setOverride(mode) {
+            localStorage.setItem("avx_forced_mode", mode);
+            updatePredictorDisplay();
+        }
+
+        function verifyAccess() {
+            const entered = document.getElementById("passInput").value;
+            const dailyPass = getDailyPassword();
+            const adminPass = "AVX444"; // আপনার সিক্রেট অ্যাডমিন পাসওয়ার্ড
+
+            if (entered === dailyPass) {
+                isAdminLoggedIn = false;
+                document.getElementById("authOverlay").style.display = "none";
+                document.getElementById("widgetContainer").style.display = "block";
+                document.getElementById("adminOverrideBox").style.display = "none";
+                startSyncTimer();
+            } 
+            else if (entered === adminPass) {
+                isAdminLoggedIn = true;
+                document.getElementById("authOverlay").style.display = "none";
+                document.getElementById("widgetContainer").style.display = "block";
+                document.getElementById("adminOverrideBox").style.display = "block";
+                startSyncTimer();
+            } 
+            else {
+                window.location.href = "https://t.me/RT_SUPPORT_ADMIN8?text=Password%20nite%20message%20den";
+            }
+        }
+
+        function toggleWidget(show) {
+            document.getElementById("widgetContainer").style.display = show ? "block" : "none";
+            document.getElementById("miniBtn").style.display = show ? "none" : "flex";
+        }
+
+        function getExactWingoPeriod() {
+            const now = new Date();
+            const year = now.getUTCFullYear();
+            const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(now.getUTCDate()).padStart(2, '0');
+            
+            const totalSecondsToday = (now.getUTCHours() * 3600) + (now.getUTCMinutes() * 60) + now.getUTCSeconds();
+            const periodIndex = Math.floor(totalSecondsToday / 30) + 1;
+            
+            const periodFormatted = String(periodIndex).padStart(4, '0');
+            return `${year}${month}${day}10005${periodFormatted}`;
+        }
+
+        function updatePredictorDisplay() {
+            const predType = document.getElementById("predType");
+            const predStatus = document.getElementById("predStatus");
+            const activePeriod = getExactWingoPeriod();
+            
+            const now = new Date();
+            const currentSecond = now.getSeconds() % 30;
+
+            if (!isAdminLoggedIn && currentSecond < 5) {
+                predType.innerText = "ANALYZING...";
+                predType.style.color = "#ffeb3b";
+                predStatus.innerText = "SCANNING SERVER...";
+                predStatus.style.color = "#ffeb3b";
+                return;
+            }
+
+            let currentMode = localStorage.getItem("avx_forced_mode") || "AUTO";
+            let isBig = false;
+
+            if (currentMode === "BIG") {
+                isBig = true;
+            } else if (currentMode === "SMALL") {
+                isBig = false;
+            } else {
+                let pNum = parseInt(activePeriod.slice(-5));
+                let randomVal = Math.sin(pNum * 73.57) * 10000;
+                let seed = Math.floor(Math.abs(randomVal)) % 50;
+                isBig = seed >= 25;
+            }
+
+            predType.innerText = isBig ? "BIG" : "SMALL";
+            predType.style.color = isBig ? "#00ffaa" : "#ff0055";
+
+            predStatus.innerText = "ACTIVE (BET NOW)";
+            predStatus.className = "status-val";
+            predStatus.style.color = "#00f0ff";
+        }
+
+        function startSyncTimer() {
+            const timerTxt = document.getElementById("timerTxt");
+            const periodTxt = document.getElementById("periodTxt");
+
+            function runTimer() {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const remaining = 30 - (seconds % 30);
+                
+                timerTxt.innerText = remaining + "s";
+                
+                const activePeriod = getExactWingoPeriod();
+                periodTxt.innerText = activePeriod;
+
+                updatePredictorDisplay();
+            }
+
+            updatePredictorDisplay();
+            runTimer();
+            setInterval(runTimer, 1000);
+        }
+
+        // Draggable Widget Support
+        const widget = document.getElementById("widgetContainer");
+        const header = document.getElementById("widgetHeader");
+
+        let isDragging = false, currentX, currentY, initialX, initialY;
+
+        header.addEventListener("mousedown", dragStart);
+        document.addEventListener("mouseup", dragEnd);
+        document.addEventListener("mousemove", drag);
+
+        header.addEventListener("touchstart", dragStart);
+        document.addEventListener("touchend", dragEnd);
+        document.addEventListener("touchmove", drag);
+
+        function dragStart(e) {
+            initialX = (e.type === "touchstart") ? e.touches[0].clientX - widget.offsetLeft : e.clientX - widget.offsetLeft;
+            initialY = (e.type === "touchstart") ? e.touches[0].clientY - widget.offsetTop : e.clientY - widget.offsetTop;
+            if (e.target === header || header.contains(e.target)) isDragging = true;
+        }
+
+        function dragEnd() { isDragging = false; }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = (e.type === "touchmove") ? e.touches[0].clientX - initialX : e.clientX - initialX;
+                currentY = (e.type === "touchmove") ? e.touches[0].clientY - initialY : e.clientY - initialY;
+                widget.style.left = currentX + "px";
+                widget.style.top = currentY + "px";
+                widget.style.transform = "none";
+            }
+        }
+    </script>
+</body>
+</html>
